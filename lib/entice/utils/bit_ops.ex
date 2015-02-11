@@ -1,4 +1,4 @@
-defmodule Entice.Web.BitOps do
+defmodule Entice.Utils.BitOps do
   use Bitwise
 
   @doc """

@@ -1,4 +1,4 @@
-defmodule Entice.Web.StructOps do
+defmodule Entice.Utils.StructOps do
 
   @doc """
   Takes a struct and copies the values of all matching keys

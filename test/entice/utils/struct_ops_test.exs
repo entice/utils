@@ -1,6 +1,6 @@
-defmodule Entice.Web.StructOpsTest do
+defmodule Entice.Utils.StructOpsTest do
   use ExUnit.Case
-  import Entice.Web.StructOps
+  import Entice.Utils.StructOps
 
   defmodule A, do: defstruct a: 1, b: 2, c: 3
   defmodule B, do: defstruct b: 1, c: 2, d: 3

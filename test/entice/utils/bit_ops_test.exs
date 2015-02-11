@@ -1,6 +1,6 @@
-defmodule Entice.Web.BitOpsTest do
+defmodule Entice.Utils.BitOpsTest do
   use ExUnit.Case
-  import Entice.Web.BitOps
+  import Entice.Utils.BitOps
 
 
   test "bit at" do
