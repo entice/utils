@@ -76,8 +76,8 @@ defmodule Entice.Utils.ETSSupervisor do
 
   def handle_call({:terminate, id}, _from, name) do
     case :ets.lookup(name, id) do
-      [{^id, _pid}] ->
-        ETSSupervisor.Spawner.terminate_child(Module.concat(name, Spawner), id)
+      [{^id, pid}] ->
+        :ok = ETSSupervisor.Spawner.terminate_child(Module.concat(name, Spawner), pid)
         :ets.delete(name, id)
         {:reply, :ok, name}
       _ -> {:reply, :error, name}
@@ -85,8 +85,8 @@ defmodule Entice.Utils.ETSSupervisor do
   end
 
   def handle_call(:clear, _from, name) do
-    for {id, _pid} <- :ets.tab2list(name) do
-      ETSSupervisor.Spawner.terminate_child(Module.concat(name, Spawner), id)
+    for {id, pid} <- :ets.tab2list(name) do
+      :ok = ETSSupervisor.Spawner.terminate_child(Module.concat(name, Spawner), pid)
       :ets.delete(name, id)
     end
 

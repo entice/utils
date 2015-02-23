@@ -28,10 +28,12 @@ defmodule Entice.Utils.ETSSupervisorTest do
   end
 
   test "deletion" do
-    ETSSupervisor.start(__MODULE__, "some_id2", [:some_state])
+    {:ok, pid} = ETSSupervisor.start(__MODULE__, "some_id2", [:some_state])
+    assert Process.alive?(pid) == true
     assert ETSSupervisor.terminate(__MODULE__, "some_id2") == :ok
     assert ETSSupervisor.terminate(__MODULE__, "some_id2") == :error
     assert ETSSupervisor.terminate(__MODULE__, "no_id") == :error
+    assert Process.alive?(pid) == false
   end
 
   test "retrieval" do
