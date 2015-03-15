@@ -135,9 +135,13 @@ defmodule Entice.Utils.SyncEvent do
 
   def handle_cast({:remove_handler, handler}, state) do
     {:ok, new_handlers, new_state} =
-      handler
-      |> handler_terminate(:remove_handler, state.state)
-      |> handler_exit_result(handler, state.handlers)
+      case state.handlers |> member?(handler) do
+        false -> {:ok, state.handlers, state.state}
+        true  ->
+          handler
+          |> handler_terminate(:remove_handler, state.state)
+          |> handler_exit_result(handler, state.handlers)
+      end
     state_changed(self, state.state, new_state)
     {:noreply, %{handlers: new_handlers, state: new_state}}
   end

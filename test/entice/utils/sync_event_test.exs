@@ -62,6 +62,11 @@ defmodule Entice.Utils.SyncEventTest do
       send(test_pid, {:got, :bar2})
       {:ok, state}
     end
+
+    def terminate(_reason, {:state, %{pid: test_pid}} = state) do
+      send(test_pid, {:got, :terminate2})
+      {:ok, state}
+    end
   end
 
 
@@ -132,6 +137,10 @@ defmodule Entice.Utils.SyncEventTest do
 
 
   test "handler removal", %{handler: pid} do
+    # shouldnt do anything if handler not present
+    SyncEvent.remove_handler(pid, TestHandler2)
+    refute_receive {:got, :terminate2}
+
     SyncEvent.remove_handler(pid, TestHandler)
     assert_receive {:got, :terminate, :remove_handler}
 
