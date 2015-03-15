@@ -27,7 +27,7 @@ defmodule Entice.Utils.ETSSupervisorTest do
 
 
   setup_all do
-    {:ok, _pid} = ETSSupervisor.Sup.start_link(__MODULE__, TestServer)
+    {:ok, _pid} = ETSSupervisor.Supervisor.start_link(__MODULE__, TestServer)
     :ok
   end
 

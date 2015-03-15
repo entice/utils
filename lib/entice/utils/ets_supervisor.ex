@@ -112,8 +112,8 @@ defmodule Entice.Utils.ETSSupervisor.Spawner do
   def start_child(spawner, args),
   do: Supervisor.start_child(spawner, args)
 
-  def terminate_child(spawner, id),
-  do: Supervisor.terminate_child(spawner, id)
+  def terminate_child(spawner, pid),
+  do: Supervisor.terminate_child(spawner, pid)
 
   def init(spawned) do
     children = [
@@ -124,7 +124,7 @@ defmodule Entice.Utils.ETSSupervisor.Spawner do
 end
 
 
-defmodule Entice.Utils.ETSSupervisor.Sup do
+defmodule Entice.Utils.ETSSupervisor.Supervisor do
   @moduledoc false
   use Supervisor
   alias Entice.Utils.ETSSupervisor
