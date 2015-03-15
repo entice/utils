@@ -65,7 +65,7 @@ defmodule Entice.Utils.ETSSupervisor do
       [{^id, other_pid}] ->
         {:reply, {:error, :process_already_registered, other_pid}, name}
       _ ->
-        {:ok, pid} = ETSSupervisor.Spawner.start_child(Module.concat(name, Spawner), id, args)
+        {:ok, pid} = ETSSupervisor.Spawner.start_child(Module.concat(name, Spawner), args)
         Process.monitor(pid)
         :ets.insert(name, {id, pid})
         {:reply, {:ok, pid}, name}
@@ -109,8 +109,8 @@ defmodule Entice.Utils.ETSSupervisor.Spawner do
   def start_link(spawned, opts \\ []),
   do: Supervisor.start_link(__MODULE__, spawned, opts)
 
-  def start_child(spawner, id, args),
-  do: Supervisor.start_child(spawner, [id|args])
+  def start_child(spawner, args),
+  do: Supervisor.start_child(spawner, args)
 
   def terminate_child(spawner, id),
   do: Supervisor.terminate_child(spawner, id)

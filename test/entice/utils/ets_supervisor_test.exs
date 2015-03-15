@@ -6,7 +6,7 @@ defmodule Entice.Utils.ETSSupervisorTest do
   defmodule TestServer do
     use GenServer
 
-    def start_link(_id, state),
+    def start_link(state),
     do: GenServer.start_link(__MODULE__, state)
 
     def init(state) do
