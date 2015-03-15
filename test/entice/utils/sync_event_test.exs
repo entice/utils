@@ -40,6 +40,11 @@ defmodule Entice.Utils.SyncEventTest do
       {:ok, state}
     end
 
+    def handle_call(:calling, {:state, %{pid: test_pid}} = state) do
+      send(test_pid, {:got, :call})
+      {:ok, :call_reply, state}
+    end
+
     def terminate(reason, {:state, %{pid: test_pid}} = state) do
       send(test_pid, {:got, :terminate, reason})
       {:ok, state}
@@ -115,6 +120,14 @@ defmodule Entice.Utils.SyncEventTest do
     # send normal event, now shouldnt respond
     SyncEvent.notify(pid, :bar)
     refute_receive {:got, :bar}
+  end
+
+
+  test "calling", %{handler: pid} do
+    :call_reply = SyncEvent.call(pid, TestHandler, :calling)
+    assert_receive {:got, :call}
+
+    {:error, :not_found} = SyncEvent.call(pid, TestHandler2, :calling)
   end
 
 
