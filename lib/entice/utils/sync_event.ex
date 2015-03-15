@@ -163,9 +163,6 @@ defmodule Entice.Utils.SyncEvent do
   end
 
 
-  def handle_info(msg, state), do: super(msg, state)
-
-
   def terminate(reason, state) do
     Enum.reduce(state.handlers, {:ok, state.handlers, state.state},
       fn (handler, {:ok, h, s}) ->
