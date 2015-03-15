@@ -1,9 +1,7 @@
-# Idea taken from José Valim:
-# https://gist.github.com/josevalim/233ae30533a9ad51861b
-
 defmodule Entice.Utils.ETSSupervisor do
   @moduledoc """
-  Module responsible to control and interact with ETSSupervisor.
+  Idea taken from José Valim:
+  https://gist.github.com/josevalim/233ae30533a9ad51861b
   """
   use GenServer
   alias Entice.Utils.ETSSupervisor
@@ -17,7 +15,7 @@ defmodule Entice.Utils.ETSSupervisor do
 
 
   @doc """
-  Lookups the an entry for the given given id.
+  Looks up an entry for the given id.
   """
   def lookup(name, id) do
     case :ets.lookup(name, id) do
@@ -49,7 +47,7 @@ defmodule Entice.Utils.ETSSupervisor do
 
 
   @doc """
-  Termiante all servers, cleaning up the ets table. Used by tests.
+  Terminate all servers, cleaning up the ets table. Used by tests.
   """
   def clear(name), do: GenServer.call(name, :clear)
 
@@ -127,6 +125,7 @@ end
 
 
 defmodule Entice.Utils.ETSSupervisor.Sup do
+  @moduledoc false
   use Supervisor
   alias Entice.Utils.ETSSupervisor
 
