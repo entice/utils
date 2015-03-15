@@ -79,8 +79,10 @@ defmodule Entice.Utils.SyncEvent do
   do: GenServer.cast(manager, {:remove_handler, handler})
 
 
-  def notify(manager, event) when is_pid(manager),
-  do: GenServer.cast(manager, {:notify, event})
+  def notify(manager, event) when is_pid(manager) do
+    send(manager, event)
+    :ok
+  end
 
 
   def call(manager, handler, event) when is_pid(manager) and is_atom(handler),
@@ -141,7 +143,10 @@ defmodule Entice.Utils.SyncEvent do
   end
 
 
-  def handle_cast({:notify, event}, state) do
+  def handle_cast(msg, state), do: super(msg, state)
+
+
+  def handle_info(event, state) do
     {:ok, new_handlers, new_state} =
       Enum.reduce(state.handlers, {:ok, state.handlers, state.state},
         fn (handler, {:ok, h, s}) ->
@@ -154,7 +159,7 @@ defmodule Entice.Utils.SyncEvent do
   end
 
 
-  def handle_cast(msg, state), do: super(msg, state)
+  def handle_info(msg, state), do: super(msg, state)
 
 
   def terminate(reason, state) do
