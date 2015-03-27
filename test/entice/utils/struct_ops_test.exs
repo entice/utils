@@ -8,4 +8,8 @@ defmodule Entice.Utils.StructOpsTest do
   test "struct copying" do
     assert copy_into(%B{}, %A{}) == %B{b: 2, c: 3, d: 3}
   end
+
+  test "struct name" do
+    assert to_name(%B{}) == "B"
+  end
 end
