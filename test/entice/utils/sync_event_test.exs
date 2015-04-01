@@ -45,6 +45,11 @@ defmodule Entice.Utils.SyncEventTest do
       {:ok, :call_reply, state}
     end
 
+    def handle_call(:call_set, {:state, %{pid: test_pid} = state}) do
+      send(test_pid, {:got, :call_set})
+      {:ok, :call_reply, {:state, %{state | test: 2}}}
+    end
+
     def terminate(reason, {:state, %{pid: test_pid}} = state) do
       send(test_pid, {:got, :terminate, reason})
       {:ok, state}
@@ -98,6 +103,13 @@ defmodule Entice.Utils.SyncEventTest do
   test "state manipulation from handler", %{handler: pid} do
     SyncEvent.notify(pid, :set)
     assert_receive {:got, :set}
+    assert_receive {:got, :change}
+  end
+
+
+  test "state manipulation from handler w/ call", %{handler: pid} do
+    SyncEvent.call(pid, TestHandler, :call_set)
+    assert_receive {:got, :call_set}
     assert_receive {:got, :change}
   end
 

@@ -116,6 +116,7 @@ defmodule Entice.Utils.SyncEvent do
           |> handler_call(event, state.state)
           |> result_call(handler, state.handlers)
       end
+    state_changed(self, state.state, new_state)
     {:reply, reply, %{handlers: new_handlers, state: new_state}}
   end
 
