@@ -9,6 +9,6 @@ defmodule Entice.Utils.Mixfile do
   end
 
   defp deps do
-    [{:inflex, "~> 0.2.5"}]
+    [{:inflex, "~> 1.0"}]
   end
 end
