@@ -23,9 +23,7 @@ defmodule Entice.Utils.SyncEvent do
 
 
   defcallback handle_change(old_state :: map, state :: map) ::
-    {:ok, state :: term} |
-    {:become, new_handler :: atom, args :: term, state :: term} |
-    {:stop, reason :: term, state :: term} |
+    :ok |
     {:error, reason :: term}
 
 
@@ -49,7 +47,7 @@ defmodule Entice.Utils.SyncEvent do
 
       def handle_event(event, state), do: {:ok, state}
 
-      def handle_change(old_state, state), do: {:ok, state}
+      def handle_change(old_state, state), do: :ok
 
       def handle_call(event, state), do: {:ok, nil, state}
 
@@ -89,9 +87,6 @@ defmodule Entice.Utils.SyncEvent do
   do: GenServer.call(manager, {:call, handler, event})
 
 
-  defp state_changed(_manager, old, new) when old == new, do: :ok
-  defp state_changed(manager, old, new) when old != new,
-  do: notify(manager, {:state_changed, old, new})
 
 
   # Backend
@@ -116,7 +111,7 @@ defmodule Entice.Utils.SyncEvent do
           |> handler_call(event, state.state)
           |> result_call(handler, state.handlers)
       end
-    state_changed(self, state.state, new_state)
+    state_changed(state.state, new_state, state)
     {:reply, reply, %{handlers: new_handlers, state: new_state}}
   end
 
@@ -129,7 +124,7 @@ defmodule Entice.Utils.SyncEvent do
       handler
       |> handler_init(state.state, args)
       |> result_notify(handler, state.handlers)
-    state_changed(self, state.state, new_state)
+    state_changed(state.state, new_state, state)
     {:noreply, %{handlers: new_handlers, state: new_state}}
   end
 
@@ -143,7 +138,7 @@ defmodule Entice.Utils.SyncEvent do
           |> handler_terminate(:remove_handler, state.state)
           |> handler_exit_result(handler, state.handlers)
       end
-    state_changed(self, state.state, new_state)
+    state_changed(state.state, new_state, state)
     {:noreply, %{handlers: new_handlers, state: new_state}}
   end
 
@@ -159,7 +154,7 @@ defmodule Entice.Utils.SyncEvent do
           |> handler_event(event, s)
           |> result_notify(handler, h)
         end)
-    state_changed(self, state.state, new_state)
+    state_changed(state.state, new_state, state)
     {:noreply, %{handlers: new_handlers, state: new_state}}
   end
 
@@ -175,6 +170,16 @@ defmodule Entice.Utils.SyncEvent do
   end
 
 
+  defp state_changed(old, new, state) when old == new, do: :ok
+  defp state_changed(old, new, state) when old != new do
+    for handler <- state.handlers do
+      handler
+      |> handler_change(old, new)
+      |> result_change(handler, old, new)
+    end
+  end
+
+
   # Backend Handler callbacks
 
 
@@ -182,20 +187,20 @@ defmodule Entice.Utils.SyncEvent do
   do: apply(handler, :init, [state, args])
 
 
-  defp handler_event(handler, {:state_changed, old_state, new_state}, state)
-  when new_state == state do
-    try do
-      apply(handler, :handle_change, [old_state, state])
-    rescue
-      _ in FunctionClauseError -> {:ok, state}
-    end
-  end
-
   defp handler_event(handler, event, state) do
     try do
       apply(handler, :handle_event, [event, state])
     rescue
       _ in FunctionClauseError -> {:ok, state}
+    end
+  end
+
+
+  defp handler_change(handler, old_state, state) do
+    try do
+      apply(handler, :handle_change, [old_state, state])
+    rescue
+      _ in FunctionClauseError -> :ok
     end
   end
 
@@ -235,6 +240,16 @@ defmodule Entice.Utils.SyncEvent do
   do: raise "Error in handler #{inspect handler} because of: #{inspect reason}"
 
   defp result_notify(return, handler, _handlers),
+  do: raise "Return was incorrect in handler #{inspect handler}. Check the API documentation for handlers. Got: #{inspect return}"
+
+
+  defp result_change(:ok, _handler, _old, _new),
+  do: :ok
+
+  defp result_change({:error, reason}, handler, old, new),
+  do: raise "Error while state change notify in handler #{inspect handler} because of: #{inspect reason}. Old state: #{inspect old}. New state: #{inspect new}"
+
+  defp result_change(return, handler, _old, _new),
   do: raise "Return was incorrect in handler #{inspect handler}. Check the API documentation for handlers. Got: #{inspect return}"
 
 
