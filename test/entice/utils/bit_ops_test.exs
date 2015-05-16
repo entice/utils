@@ -1,5 +1,5 @@
 defmodule Entice.Utils.BitOpsTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   import Entice.Utils.BitOps
 
 

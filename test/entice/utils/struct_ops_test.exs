@@ -1,5 +1,5 @@
 defmodule Entice.Utils.StructOpsTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   import Entice.Utils.StructOps
 
   defmodule A, do: defstruct a: 1, b: 2, c: 3

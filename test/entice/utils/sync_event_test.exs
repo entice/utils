@@ -1,5 +1,5 @@
 defmodule Entice.Utils.SyncEventTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   alias Entice.Utils.SyncEvent
 
 
