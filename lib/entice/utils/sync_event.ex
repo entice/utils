@@ -170,7 +170,7 @@ defmodule Entice.Utils.SyncEvent do
   end
 
 
-  defp state_changed(old, new, state) when old == new, do: :ok
+  defp state_changed(old, new, _state) when old == new, do: :ok
   defp state_changed(old, new, state) when old != new do
     for handler <- state.handlers do
       handler
