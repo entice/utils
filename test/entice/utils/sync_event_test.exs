@@ -35,7 +35,7 @@ defmodule Entice.Utils.SyncEventTest do
       {:stop, :some_reason, state}
     end
 
-    def handle_change({:state, %{test: 1}}, {:state, %{pid: test_pid, test: 2}} = state) do
+    def handle_change({:state, %{test: 1}}, {:state, %{pid: test_pid, test: 2}}) do
       send(test_pid, {:got, :change})
       :ok
     end

@@ -4,11 +4,11 @@ defmodule Entice.Utils.Mixfile do
   def project do
     [app: :entice_utils,
      version: "0.0.1",
-     elixir: "~> 1.0",
+     elixir: "~> 1.1",
      deps: deps]
   end
 
   defp deps do
-    [{:inflex, "~> 1.0"}]
+    [{:inflex, "~> 1.5"}]
   end
 end
