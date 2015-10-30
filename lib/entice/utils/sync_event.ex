@@ -1,6 +1,15 @@
 defmodule Entice.Utils.SyncEvent do
   @moduledoc """
   Represents a gen_event where handlers are synchronized on the same state.
+
+  If a handler is removed, the reason passed into terminate will be:
+
+      :remove_handler
+
+  If a handler is exchanged for another handler with `become` (see the callbacks),
+  the reason passed into terminate will be:
+
+      {:become_handler, new_handler :: atom, args :: term}
   """
   use Behaviour
   use GenServer
@@ -85,8 +94,6 @@ defmodule Entice.Utils.SyncEvent do
 
   def call(manager, handler, event) when is_pid(manager) and is_atom(handler),
   do: GenServer.call(manager, {:call, handler, event})
-
-
 
 
   # Backend
@@ -228,7 +235,7 @@ defmodule Entice.Utils.SyncEvent do
   defp result_notify({:become, new_handler, args, state}, handler, handlers) do
     {:ok, new_handlers, new_state} =
       handler
-      |> handler_terminate(:remove_handler, state)
+      |> handler_terminate({:become_handler, new_handler, args}, state)
       |> handler_exit_result(handler, handlers)
 
     new_handler
@@ -267,7 +274,7 @@ defmodule Entice.Utils.SyncEvent do
   defp result_call({:become, reply, new_handler, args, state}, handler, handlers) do
     {:ok, new_handlers, new_state} =
       handler
-      |> handler_terminate(:remove_handler, state)
+      |> handler_terminate({:become_handler, new_handler, args}, state)
       |> handler_exit_result(handler, handlers)
     {:ok, new_handlers, new_state} =
       new_handler

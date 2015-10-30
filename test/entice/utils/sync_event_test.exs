@@ -117,7 +117,7 @@ defmodule Entice.Utils.SyncEventTest do
   test "becoming", %{handler: pid} do
     SyncEvent.notify(pid, :become)
     assert_receive {:got, :become}
-    assert_receive {:got, :terminate, :remove_handler}
+    assert_receive {:got, :terminate, {:become_handler, TestHandler2, {:cool, _self}}}
 
     assert SyncEvent.has_handler?(pid, TestHandler2) == true
     assert SyncEvent.has_handler?(pid, TestHandler) == false
