@@ -28,6 +28,7 @@ defmodule Entice.Utils.SyncEvent do
     {:ok, state :: term} |
     {:become, new_handler :: atom, args :: term, state :: term} |
     {:stop, reason :: term, state :: term} |
+    {:stop_process, reason :: term, state :: term} |
     {:error, reason :: term}
 
 
@@ -40,6 +41,7 @@ defmodule Entice.Utils.SyncEvent do
     {:ok, reply :: term, state :: term} |
     {:become, reply :: term, new_handler :: atom, args :: term, state :: term} |
     {:stop, reason :: term, reply :: term, state :: term} |
+    {:stop_process, reason :: term, reply :: term, state :: term} |
     {:error, reason :: term}
 
 
@@ -110,16 +112,21 @@ defmodule Entice.Utils.SyncEvent do
 
 
   def handle_call({:call, handler, event}, _from, state) do
-    {:ok, reply, new_handlers, new_state} =
-      case state.handlers |> member?(handler) do
-        false -> {:ok, {:error, :not_found}, state.handlers, state.state}
-        true  ->
-          handler
-          |> handler_call(event, state.state)
-          |> result_call(handler, state.handlers)
-      end
-    state_changed(state.state, new_state, state)
-    {:reply, reply, %{handlers: new_handlers, state: new_state}}
+    case state.handlers |> member?(handler) do
+      false -> {:ok, {:error, :not_found}, state.handlers, state.state}
+      true  ->
+        handler
+        |> handler_call(event, state.state)
+        |> result_call(handler, state.handlers)
+    end
+    |> case do
+      {:ok, reply, new_handlers, new_state} ->
+        state_changed(state.state, new_state, state)
+        {:reply, reply, %{handlers: new_handlers, state: new_state}}
+      {:stop, reason, reply, new_handlers, new_state} ->
+        state_changed(state.state, new_state, state)
+        {:stop, reason, reply, %{handlers: new_handlers, state: new_state}}
+    end
   end
 
 
@@ -154,15 +161,21 @@ defmodule Entice.Utils.SyncEvent do
 
 
   def handle_info(event, state) do
-    {:ok, new_handlers, new_state} =
-      Enum.reduce(state.handlers, {:ok, state.handlers, state.state},
-        fn (handler, {:ok, h, s}) ->
+    Enum.reduce(state.handlers, {:ok, state.handlers, state.state},
+      fn (_handler, {:stop, _r, _h, _s} = stop) -> stop
+         (handler, {:ok, h, s}) ->
           handler
           |> handler_event(event, s)
           |> result_notify(handler, h)
-        end)
-    state_changed(state.state, new_state, state)
-    {:noreply, %{handlers: new_handlers, state: new_state}}
+      end)
+    |> case do
+      {:ok, new_handlers, new_state} ->
+        state_changed(state.state, new_state, state)
+        {:noreply, %{handlers: new_handlers, state: new_state}}
+      {:stop, reason, new_handlers, new_state} ->
+        state_changed(state.state, new_state, state)
+        {:stop, reason, %{handlers: new_handlers, state: new_state}}
+    end
   end
 
 
@@ -232,6 +245,9 @@ defmodule Entice.Utils.SyncEvent do
     |> handler_exit_result(handler, handlers)
   end
 
+  defp result_notify({:stop_process, reason, state}, handler, handlers),
+  do: {:stop, reason, handlers |> put(handler), state}
+
   defp result_notify({:become, new_handler, args, state}, handler, handlers) do
     {:ok, new_handlers, new_state} =
       handler
@@ -270,6 +286,9 @@ defmodule Entice.Utils.SyncEvent do
       |> handler_exit_result(handler, handlers)
     {:ok, reply, new_handlers, new_state}
   end
+
+  defp result_call({:stop_process, reason, reply, state}, handler, handlers),
+  do: {:stop, reason, reply, handlers |> put(handler), state}
 
   defp result_call({:become, reply, new_handler, args, state}, handler, handlers) do
     {:ok, new_handlers, new_state} =

@@ -35,6 +35,11 @@ defmodule Entice.Utils.SyncEventTest do
       {:stop, :some_reason, state}
     end
 
+    def handle_event(:stop_process, {:state, %{pid: test_pid}} = state) do
+      send(test_pid, {:got, :stop_process})
+      {:stop_process, :normal, state} # suppress warnings/errors by using 'normal'
+    end
+
     def handle_change({:state, %{test: 1}}, {:state, %{pid: test_pid, test: 2}}) do
       send(test_pid, {:got, :change})
       :ok
@@ -137,6 +142,17 @@ defmodule Entice.Utils.SyncEventTest do
     # send normal event, now shouldnt respond
     SyncEvent.notify(pid, :bar)
     refute_receive {:got, :bar}
+  end
+
+
+  test "stopping the process", %{handler: pid} do
+    Process.monitor(pid)
+    SyncEvent.notify(pid, :stop_process)
+    assert_receive {:got, :stop_process}
+    assert_receive {:got, :terminate, :normal}
+
+    assert_receive {:DOWN, _ref, :process, pid, :normal}
+    assert not Process.alive?(pid)
   end
 
 
