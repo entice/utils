@@ -4,7 +4,7 @@ defmodule Entice.Utils.Mixfile do
   def project do
     [app: :entice_utils,
      version: "0.0.1",
-     elixir: "~> 1.1",
+     elixir: "~> 1.2",
      deps: deps]
   end
 
